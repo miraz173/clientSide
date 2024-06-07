@@ -2,7 +2,7 @@ import axios from "axios";
 import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 
-// const ipNport = 'http://localhost:3001/';
+// const ipNport = "http://localhost:3001/";
 const ipNport = "https://alumniserver.up.railway.app/";
 
 export function Horizontal() {
@@ -416,7 +416,7 @@ export function SearchSection({ updatePInfo, upSrchTxt, query, setQuery }) {
           </h2>
         </div>
 
-        <div style={{ width: "75%", paddingLeft: "25%", paddingBottom: "4%" }}>
+        <div className="w-[85%] md:w-[75%] pl-[15%] md:pl-[25%] pb-16 md:pb-[4%]">
           {/* <form onSubmit={handleSearch}> */}
           <label
             htmlFor="default-search"
@@ -452,16 +452,16 @@ export function SearchSection({ updatePInfo, upSrchTxt, query, setQuery }) {
               placeholder="Search by Name, Position, Organisation..."
               required
             />
-            <div className="absolute right-2.5 bottom-2.5">
+            <div className="absolute md:right-2.5 md:bottom-2.5 flex flex-row pt-1 md:pt-0">
               <button
                 onClick={(event) => similarSearch(event, "1")}
-                className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 mr-2"
+                className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-1 md:py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 mr-2"
               >
                 Exact Search
               </button>
               <button
                 onClick={(event) => similarSearch(event, "2")}
-                className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-1 md:py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
               >
                 Similar Search
               </button>
@@ -549,7 +549,7 @@ export function Login({ updateLogged, updatePerson }) {
             ipNport + `?query=${encodeURIComponent("1" + roll)}`
           )
           .then((response) => {
-            response.data[0].password = password;
+            response.data[0].password = password; //response.password was not coming from the server. it is added from frontend input for later edits.
             updatePerson(response.data[0]);
           })
           .catch((error) => {
@@ -625,6 +625,9 @@ export function Login({ updateLogged, updatePerson }) {
 }
 
 export function ProfileEdit({ gperson, updateLogged }) {
+  const [pass, setPass] = useState("");
+  const [newPass, setNewPass] = useState("");
+  const [newPass2, setNewPass2] = useState("");
   const [person, setPerson] = useState({}); //...gperson
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -752,315 +755,418 @@ export function ProfileEdit({ gperson, updateLogged }) {
     );
     myWidget.open();
   };
+  const changePass = (e) => {
+    e.preventDefault();
+    // Add your form submission logic here
+    if (newPass !== newPass2) {
+      alert("New password and confirm password do not match.");
+      return;
+    }
+    // Continue with password change logic
+    let request = { roll: person.roll, password: pass, newPass: newPass };
+    axios
+      // .post("http://localhost:3001/cngpass", person)
+      .post(ipNport + "cngpass", request)
+      .then((response) => {
+        console.log(response.data.changedRows + " record(s) updated");
+        if (response.data.changedRows === 0) {
+          alert("Wrong Password");
+        } else {
+          alert("Password Changed Successfully");
+          updateLogged(0);
+        }
+        // console.log("Password change submitted:", { pass, newPass });
+      })
+      .catch((error) => {
+        console.error(error);
+        // Handle error
+      });
+  };
 
   return (
     <>
       {/* snap-start */}
-      <form className="px-[18%] dark:text-white" onSubmit={handleSubmit}>
-        <div className="space-y-10">
-          <div className="border-b border-gray-900/10 pb-12 mb-3">
-            <h2 className="text-base font-semibold leading-7 text-gray-900 dark:text-slate-200 mt-4">
-              Personal Information
-            </h2>
-            <p className="mt-1 text-sm leading-6 text-blue-600">
-              The information will be publicly visible.
-            </p>
 
-            <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-              <div className="sm:col-span-3">
-                <label
-                  htmlFor="first-name"
-                  className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
-                >
-                  Full Name
-                </label>
-                <div className="mt-2">
-                  <input
-                    onChange={handleInputChange}
-                    type="text"
-                    name="name"
-                    id="name"
-                    value={person["name"]}
-                    autoComplete="fullname"
-                    className="block w-full indent-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  />
-                </div>
-              </div>
-              <div className="sm:col-span-1">
-                Profile Pic
-                <Image
-                  src={person.image ? person.image : "/ruet.png"} //image link here'/vercel.svg'
-                  alt="profile"
-                  className="relative m-auto w-[8vh] h-[8vh] overflow-hidden rounded-full"
-                  height={"80"}
-                  width={"80"}
+      <h2 className="text-base font-semibold leading-7 text-gray-900 dark:text-slate-200 mt-4 mx-auto justify-center">
+        Change Password
+      </h2>
+      <form
+        className="my-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 dark:text-white w-[64%] m-auto justify-center"
+        onSubmit={changePass}
+      >
+        <div className="sm:col-span-2 sm:col-start-1">
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
+          >
+            Password
+          </label>
+          <div className="mt-2">
+            <input
+              type="password"
+              name="password"
+              id="password"
+              autoComplete="password"
+              value={pass}
+              onChange={(e) => setPass(e.target.value)}
+              className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+            />
+          </div>
+        </div>
+
+        <div className="sm:col-span-2">
+          <label
+            htmlFor="newPass"
+            className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
+          >
+            New Password
+          </label>
+          <div className="mt-2">
+            <input
+              type="password"
+              name="newPassword"
+              id="newPassword"
+              autoComplete="newPassword"
+              value={newPass}
+              onChange={(e) => setNewPass(e.target.value)}
+              className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+            />
+          </div>
+        </div>
+
+        <div className="sm:col-span-2">
+          <label
+            htmlFor="region"
+            className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
+          >
+            Confirm Password
+          </label>
+          <div className="mt-2">
+            <input
+              type="password"
+              name="newPassword2"
+              id="newPassword2"
+              autoComplete="newPassword"
+              value={newPass2}
+              onChange={(e) => setNewPass2(e.target.value)}
+              className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+            />
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+        >
+          Change Password
+        </button>
+      </form>
+
+      <div className="h-[1px] w-[65vw] dark:bg-slate-300 bg-violet-500 mx-auto"></div>
+
+      <form className="px-[18%] mb-6 dark:text-white" onSubmit={handleSubmit}>
+        <div className="border-b border-gray-900/10 pb-12 mb-3 space-y-5">
+          <h2 className="text-base font-semibold leading-7 text-gray-900 dark:text-slate-200 mt-4">
+            Personal Information
+          </h2>
+          <p className="mt-1 text-sm leading-6 text-blue-600">
+            The information will be publicly visible.
+          </p>
+
+          <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+            <div className="sm:col-span-3">
+              <label
+                htmlFor="first-name"
+                className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
+              >
+                Full Name
+              </label>
+              <div className="mt-2">
+                <input
+                  onChange={handleInputChange}
+                  type="text"
+                  name="name"
+                  id="name"
+                  value={person["name"]}
+                  autoComplete="fullname"
+                  className="block w-full indent-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                 />
               </div>
+            </div>
+            <div className="sm:col-span-1">
+              Profile Pic
+              <Image
+                src={person.image ? person.image : "/ruet.png"} //image link here'/vercel.svg'
+                alt="profile"
+                className="relative m-auto w-[8vh] h-[8vh] overflow-hidden rounded-full"
+                height={"80"}
+                width={"80"}
+              />
+            </div>
 
-              <div className="sm:col-span-1">
-                Update Profile Pic
-                <button
-                  id="upload_widget"
-                  type="button"
-                  className="relative cursor-pointer rounded-md bg-white font-semibold text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-600 focus-within:ring-offset-2 hover:text-indigo-500"
-                  onClick={handleUploadPic}
-                >
-                  Upload files
-                </button>
+            <div className="sm:col-span-1">
+              Update Profile Pic
+              <button
+                id="upload_widget"
+                type="button"
+                className="relative cursor-pointer rounded-md bg-white font-semibold text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-600 focus-within:ring-offset-2 hover:text-indigo-500"
+                onClick={handleUploadPic}
+              >
+                Upload files
+              </button>
+            </div>
+
+            <div className="sm:col-span-1"></div>
+
+            <div className="sm:col-span-2">
+              <label
+                htmlFor="position"
+                className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
+              >
+                Job Title
+              </label>
+              <div className="mt-2">
+                <input
+                  id="position"
+                  name="position"
+                  type="text"
+                  autoComplete="position"
+                  value={person["position"]}
+                  onChange={handleInputChange}
+                  className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                />
               </div>
+            </div>
 
-              <div className="sm:col-span-1"></div>
-
-              <div className="sm:col-span-2">
-                <label
-                  htmlFor="position"
-                  className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
-                >
-                  Job Title
-                </label>
-                <div className="mt-2">
-                  <input
-                    id="position"
-                    name="position"
-                    type="text"
-                    autoComplete="position"
-                    value={person["position"]}
-                    onChange={handleInputChange}
-                    className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  />
-                </div>
+            <div className="sm:col-span-2">
+              <label
+                htmlFor="company"
+                className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
+              >
+                Job Organisation
+              </label>
+              <div className="mt-2">
+                <input
+                  type="text"
+                  id="company"
+                  name="company"
+                  autoComplete="Institution"
+                  value={person["company"]}
+                  onChange={handleInputChange}
+                  className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                />
               </div>
+            </div>
 
-              <div className="sm:col-span-2">
-                <label
-                  htmlFor="company"
-                  className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
-                >
-                  Job Organisation
-                </label>
-                <div className="mt-2">
-                  <input
-                    type="text"
-                    id="company"
-                    name="company"
-                    autoComplete="Institution"
-                    value={person["company"]}
-                    onChange={handleInputChange}
-                    className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  />
-                </div>
+            <div className="col-span-full">
+              <label
+                htmlFor="higherEd"
+                className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
+              >
+                Higher Education
+              </label>
+              <div className="mt-2">
+                <input
+                  type="text"
+                  name="higherEd"
+                  id="higherEd"
+                  autoComplete="higherEd"
+                  value={person["higherEd"]}
+                  onChange={handleInputChange}
+                  placeholder="PhD in Cryptography from Caltech, MSc in CyberSecurity from MIT"
+                  className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                />
               </div>
+            </div>
 
-              <div className="col-span-full">
-                <label
-                  htmlFor="higherEd"
-                  className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
-                >
-                  Higher Education
-                </label>
-                <div className="mt-2">
-                  <input
-                    type="text"
-                    name="higherEd"
-                    id="higherEd"
-                    autoComplete="higherEd"
-                    value={person["higherEd"]}
-                    onChange={handleInputChange}
-                    placeholder="PhD in Cryptography from Caltech, MSc in CyberSecurity from MIT"
-                    className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  />
-                </div>
+            <div className="sm:col-span-full">
+              <label
+                htmlFor="about"
+                className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
+              >
+                About (anything and everything related to career)
+              </label>
+              <div className="mt-2">
+                <textarea
+                  type="text"
+                  name="about"
+                  id="about"
+                  autoComplete="about"
+                  value={person["about"]}
+                  onChange={handleInputChange}
+                  placeholder="I died twice already. As a matter of fact, I'm dead."
+                  className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                />
               </div>
+            </div>
 
-              <div className="sm:col-span-full">
-                <label
-                  htmlFor="about"
-                  className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
-                >
-                  About (anything and everything related to career)
-                </label>
-                <div className="mt-2">
-                  <textarea
-                    type="text"
-                    name="about"
-                    id="about"
-                    autoComplete="about"
-                    value={person["about"]}
-                    onChange={handleInputChange}
-                    placeholder="I died twice already. As a matter of fact, I'm dead."
-                    className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  />
-                </div>
+            <div className="sm:col-span-2 sm:col-start-1">
+              <label
+                htmlFor="city"
+                className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
+              >
+                City
+              </label>
+              <div className="mt-2">
+                <input
+                  type="text"
+                  name="city"
+                  id="city"
+                  autoComplete="address-level2"
+                  value={person["city"]}
+                  onChange={handleInputChange}
+                  className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                />
               </div>
+            </div>
 
-              <div className="sm:col-span-2 sm:col-start-1">
-                <label
-                  htmlFor="city"
-                  className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
-                >
-                  City
-                </label>
-                <div className="mt-2">
-                  <input
-                    type="text"
-                    name="city"
-                    id="city"
-                    autoComplete="address-level2"
-                    value={person["city"]}
-                    onChange={handleInputChange}
-                    className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  />
-                </div>
+            <div className="sm:col-span-2">
+              <label
+                htmlFor="region"
+                className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
+              >
+                State / Province
+              </label>
+              <div className="mt-2">
+                <input
+                  type="text"
+                  name="state"
+                  id="state"
+                  autoComplete="address-level1"
+                  value={person["state"]}
+                  onChange={handleInputChange}
+                  className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                />
               </div>
+            </div>
 
-              <div className="sm:col-span-2">
-                <label
-                  htmlFor="region"
-                  className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
-                >
-                  State / Province
-                </label>
-                <div className="mt-2">
-                  <input
-                    type="text"
-                    name="state"
-                    id="state"
-                    autoComplete="address-level1"
-                    value={person["state"]}
-                    onChange={handleInputChange}
-                    className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  />
-                </div>
+            <div className="sm:col-span-2">
+              <label
+                htmlFor="postal-code"
+                className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
+              >
+                Country
+              </label>
+              <div className="mt-2">
+                <input
+                  type="text"
+                  name="country"
+                  id="country"
+                  autoComplete="country"
+                  value={person["country"]}
+                  onChange={handleInputChange}
+                  className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                />
               </div>
+            </div>
 
-              <div className="sm:col-span-2">
-                <label
-                  htmlFor="postal-code"
-                  className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
-                >
-                  Country
-                </label>
-                <div className="mt-2">
-                  <input
-                    type="text"
-                    name="country"
-                    id="country"
-                    autoComplete="country"
-                    value={person["country"]}
-                    onChange={handleInputChange}
-                    className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  />
-                </div>
+            <div className="col-span-full">
+              <label
+                htmlFor="attributes"
+                className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
+              >
+                Attributes That Suits You
+              </label>
+              <div className="mt-2">
+                <input
+                  type="text"
+                  name="attributes"
+                  id="attributes"
+                  autoComplete="attributes"
+                  value={person["attributes"]}
+                  onChange={handleInputChange}
+                  placeholder="Comma Separeted: Web Dev, MERN, CyberSecurity, Criminal, MIT, ICPC World finalist, PRAN-RFL, etc."
+                  className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                />
               </div>
+            </div>
 
-              <div className="col-span-full">
-                <label
-                  htmlFor="attributes"
-                  className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
-                >
-                  Attributes That Suits You
-                </label>
-                <div className="mt-2">
-                  <input
-                    type="text"
-                    name="attributes"
-                    id="attributes"
-                    autoComplete="attributes"
-                    value={person["attributes"]}
-                    onChange={handleInputChange}
-                    placeholder="Comma Separeted: Web Dev, MERN, CyberSecurity, Criminal, MIT, ICPC World finalist, PRAN-RFL, etc."
-                    className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  />
-                </div>
+            <div className="sm:col-span-2 sm:col-start-1">
+              <label
+                htmlFor="phone"
+                className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
+              >
+                Phone
+              </label>
+              <div className="mt-2">
+                <input
+                  type="tel"
+                  name="phone"
+                  id="phone"
+                  autoComplete="phone"
+                  value={person["phone"]}
+                  onChange={handleInputChange}
+                  className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                />
               </div>
+            </div>
 
-              <div className="sm:col-span-2 sm:col-start-1">
-                <label
-                  htmlFor="phone"
-                  className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
-                >
-                  Phone
-                </label>
-                <div className="mt-2">
-                  <input
-                    type="tel"
-                    name="phone"
-                    id="phone"
-                    autoComplete="phone"
-                    value={person["phone"]}
-                    onChange={handleInputChange}
-                    className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  />
-                </div>
+            <div className="sm:col-span-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
+              >
+                Email
+              </label>
+              <div className="mt-2">
+                <input
+                  type="email"
+                  name="email"
+                  id="email"
+                  autoComplete="email"
+                  value={person["email"]}
+                  onChange={handleInputChange}
+                  className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                />
               </div>
+            </div>
 
-              <div className="sm:col-span-2">
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
-                >
-                  Email
-                </label>
-                <div className="mt-2">
-                  <input
-                    type="email"
-                    name="email"
-                    id="email"
-                    autoComplete="email"
-                    value={person["email"]}
-                    onChange={handleInputChange}
-                    className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  />
-                </div>
+            <div className="sm:col-span-2">
+              <label
+                htmlFor="facebook"
+                className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
+              >
+                Facebook
+              </label>
+              <div className="mt-2">
+                <input
+                  type="text"
+                  name="facebook"
+                  id="facebook"
+                  autoComplete="facebook"
+                  value={person["facebook"]}
+                  onChange={handleInputChange}
+                  placeholder="https://facebook.com/kholilur1903121"
+                  className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                />
               </div>
+            </div>
 
-              <div className="sm:col-span-2">
-                <label
-                  htmlFor="facebook"
-                  className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
-                >
-                  Facebook
-                </label>
-                <div className="mt-2">
-                  <input
-                    type="text"
-                    name="facebook"
-                    id="facebook"
-                    autoComplete="facebook"
-                    value={person["facebook"]}
-                    onChange={handleInputChange}
-                    placeholder="https://facebook.com/kholilur1903121"
-                    className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  />
-                </div>
-              </div>
-
-              <div className="sm:col-span-full">
-                <label
-                  htmlFor="socialmedia"
-                  className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
-                >
-                  Other social media links (Sitename space
-                  absolute_URL_of_Your_Profile)
-                </label>
-                <div className="mt-2">
-                  <textarea
-                    type="text"
-                    name="socialmedia"
-                    id="socialmedia"
-                    autoComplete="socialmedia"
-                    value={person["socialmedia"] ? person["socialmedia"] : ""}
-                    onChange={handleInputChange}
-                    placeholder="Comma separeted: dribble https://dribble.com/eftekher420, whatsapp http://whatsapp.com/jijuJizz, twitter https://twitter.com/imMizan"
-                    className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  />
-                </div>
+            <div className="sm:col-span-full">
+              <label
+                htmlFor="socialmedia"
+                className="block text-sm font-medium leading-6 text-gray-900 dark:text-slate-200"
+              >
+                Other social media links (Sitename space
+                absolute_URL_of_Your_Profile)
+              </label>
+              <div className="mt-2">
+                <textarea
+                  type="text"
+                  name="socialmedia"
+                  id="socialmedia"
+                  autoComplete="socialmedia"
+                  value={person["socialmedia"] ? person["socialmedia"] : ""}
+                  onChange={handleInputChange}
+                  placeholder="Comma separeted: dribble https://dribble.com/eftekher420, whatsapp http://whatsapp.com/jijuJizz, twitter https://twitter.com/imMizan"
+                  className="block indent-2 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                />
               </div>
             </div>
           </div>
         </div>
 
-        <div className="mt-6 flex items-center justify-center gap-x-6">
+        <div className="mt-4 flex items-center justify-center gap-x-6">
           <button
             onClick={cancelButton}
             type="button"
@@ -1070,18 +1176,23 @@ export function ProfileEdit({ gperson, updateLogged }) {
           </button>
           <button
             type="submit"
-            className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
           >
             Save
           </button>
         </div>
       </form>
 
-      <div className="flex flex-col lg:flex-row items-center justify-center">
-        <div className="px-[0%]">
+      <div className="h-[1px] w-[65vw] dark:bg-slate-300 bg-violet-500 mx-auto"></div>
+
+      <h2 className="text-base font-semibold leading-7 text-gray-900 dark:text-slate-100 mt-4 mx-auto justify-center">
+        Appearance
+      </h2>
+      <div className="my-6 flex flex-col lg:flex-row items-center justify-center">
+        <div className="px-[0%] text-center min-w-[20vw] max-w-[34vw]">
           <PersonCardNoSnap props={person} />
         </div>
-        <div className="px-[0%]">
+        <div className="px-[0%] min-w-[20vw]">
           <PersonDescNoSnap props={person} />
         </div>
       </div>
@@ -1104,7 +1215,7 @@ export function PersonDescNoSnap({ props }) {
         sbuttons.push(<SocialButton title={scl[0]} link={scl[1]} key={i} />);
       }
     }
-    console.log(props);
+    // console.log(props);
   }
   return (
     <>
